@@ -2,10 +2,10 @@ data "aws_ec2_instance_type" "bastion_type" {
   instance_type = var.instance_type
 }
 
-data "aws_ami" "amazon-linux-2" {
+data "aws_ami" "amazon-linux-2023" {
   most_recent = true
   owners      = ["amazon"]
-  name_regex  = "^amzn2-ami-hvm.*-gp2"
+  name_regex  = "^al2023-ami-2023\\."
 
   filter {
     name   = "architecture"
