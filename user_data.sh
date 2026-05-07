@@ -1,5 +1,11 @@
 #!/bin/bash -x
-yum -y update --security
+dnf -y update --security
+
+# Install packages not present by default on Amazon Linux 2023:
+#   acl    — provides setfacl
+#   cronie — provides crond and crontab
+dnf -y install acl cronie
+systemctl enable --now crond
 
 ##########################
 ## ENABLE SSH RECORDING ##
@@ -20,8 +26,14 @@ sed -i "s/#Port 22/Port ${public_ssh_port}/g" /etc/ssh/sshd_config
 echo -e "\\nForceCommand /usr/bin/bastion/shell" >> /etc/ssh/sshd_config
 
 # Block some SSH features that bastion host users could use to circumvent the solution
-awk '!/X11Forwarding/' /etc/ssh/sshd_config > temp && mv temp /etc/ssh/sshd_config
+sshd_config_tmp="$(mktemp)"
+awk '!/X11Forwarding/' /etc/ssh/sshd_config > "$sshd_config_tmp" && mv "$sshd_config_tmp" /etc/ssh/sshd_config
 echo "X11Forwarding no" >> /etc/ssh/sshd_config
+
+# Disable reverse DNS lookups on incoming connections
+sshd_config_tmp="$(mktemp)"
+awk '!/UseDNS/' /etc/ssh/sshd_config > "$sshd_config_tmp" && mv "$sshd_config_tmp" /etc/ssh/sshd_config
+echo "UseDNS no" >> /etc/ssh/sshd_config
 
 mkdir /usr/bin/bastion
 
@@ -79,8 +91,13 @@ mount -o remount,rw,hidepid=2 /proc
 awk '!/proc/' /etc/fstab > temp && mv temp /etc/fstab
 echo "proc /proc proc defaults,hidepid=2 0 0" >> /etc/fstab
 
+# On Amazon Linux 2023, ssh may be socket-activated, which ignores the Port
+# directive in sshd_config. Disable the socket and use the service unit so
+# the configured port takes effect.
+systemctl disable --now ssh.socket 2>/dev/null || true
+
 # Restart the SSH service to apply /etc/ssh/sshd_config modifications.
-service sshd restart
+systemctl restart sshd
 
 ############################
 ## EXPORT LOG FILES TO S3 ##
@@ -177,7 +194,7 @@ chmod 700 /usr/bin/bastion/sync_users
 cat > /usr/bin/bastion/yum_update << 'EOF'
 #!/usr/bin/env bash
 
-yum -y update --security
+dnf -y update --security
 
 chown root:ec2-user /usr/bin/script
 chmod g+s /usr/bin/script
@@ -200,8 +217,8 @@ crontab ~/mycron
 rm ~/mycron
 
 
-#########################################
+########################################
 ## Add Custom extra_user_data_content ##
-#######################################
+########################################
 
 ${extra_user_data_content}

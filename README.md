@@ -61,15 +61,15 @@ module "bastion" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.0 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0 |
 
 ## Modules
 
@@ -78,7 +78,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_autoscaling_group.bastion_auto_scaling_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
 | [aws_iam_instance_profile.bastion_host_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_policy.bastion_host_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
@@ -103,7 +103,8 @@ No modules.
 | [aws_security_group_rule.egress_bastion](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.ingress_bastion](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.ingress_instances](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
-| [aws_ami.amazon-linux-2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ami.amazon-linux-2023](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ec2_instance_type.bastion_type](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 | [aws_iam_policy_document.assume_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.bastion_host_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_kms_alias.kms-ebs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_alias) | data source |
@@ -112,7 +113,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_allow_ssh_commands"></a> [allow\_ssh\_commands](#input\_allow\_ssh\_commands) | Allows the SSH user to execute one-off commands. Pass true to enable. Warning: These commands are not logged and increase the vulnerability of the system. Use at your own discretion. | `bool` | `false` | no |
 | <a name="input_associate_public_ip_address"></a> [associate\_public\_ip\_address](#input\_associate\_public\_ip\_address) | n/a | `bool` | `true` | no |
 | <a name="input_auto_scaling_group_subnets"></a> [auto\_scaling\_group\_subnets](#input\_auto\_scaling\_group\_subnets) | List of subnets where the Auto Scaling Group will deploy the instances | `list(string)` | n/a | yes |
@@ -129,9 +130,9 @@ No modules.
 | <a name="input_bucket_force_destroy"></a> [bucket\_force\_destroy](#input\_bucket\_force\_destroy) | The bucket and all objects should be destroyed when using true | `bool` | `false` | no |
 | <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | Bucket name where the bastion will store the logs | `string` | n/a | yes |
 | <a name="input_bucket_versioning"></a> [bucket\_versioning](#input\_bucket\_versioning) | Enable bucket versioning or not | `bool` | `true` | no |
-| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | List of CIDRs that can access the bastion. Default: 0.0.0.0/0 | `list(string)` | <pre>[<br>  "0.0.0.0/0"<br>]</pre> | no |
+| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | List of CIDRs that can access the bastion. Default: 0.0.0.0/0 | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_create_dns_record"></a> [create\_dns\_record](#input\_create\_dns\_record) | Choose if you want to create a record name for the bastion (LB). If true, 'hosted\_zone\_id' and 'bastion\_record\_name' are mandatory | `bool` | n/a | yes |
-| <a name="input_create_elb"></a> [create\_elb](#input\_create\_elb) | Choose if you want to deploy an ELB for accessing bastion hosts. Only select false if there is no need to SSH into bastion from outside. If true, you must set elb\_subnets and is\_lb\_private | `bool` | `true` | no |
+| <a name="input_create_elb"></a> [create\_elb](#input\_create\_elb) | Choose if you want to deploy an ELB for accessing bastion hosts. If true, you must set elb\_subnets and is\_lb\_private | `bool` | `true` | no |
 | <a name="input_disk_encrypt"></a> [disk\_encrypt](#input\_disk\_encrypt) | Instance EBS encryption | `bool` | `true` | no |
 | <a name="input_disk_size"></a> [disk\_size](#input\_disk\_size) | Root EBS size in GB | `number` | `8` | no |
 | <a name="input_elb_subnets"></a> [elb\_subnets](#input\_elb\_subnets) | List of subnets where the ELB will be deployed | `list(string)` | `[]` | no |
@@ -143,7 +144,7 @@ No modules.
 | <a name="input_http_endpoint"></a> [http\_endpoint](#input\_http\_endpoint) | Whether the metadata service is available | `bool` | `true` | no |
 | <a name="input_http_put_response_hop_limit"></a> [http\_put\_response\_hop\_limit](#input\_http\_put\_response\_hop\_limit) | The desired HTTP PUT response hop limit for instance metadata requests | `number` | `1` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance size of the bastion | `string` | `"t3.nano"` | no |
-| <a name="input_ipv6_cidrs"></a> [ipv6\_cidrs](#input\_ipv6\_cidrs) | List of IPv6 CIDRs that can access the bastion. Default: ::/0 | `list(string)` | <pre>[<br>  "::/0"<br>]</pre> | no |
+| <a name="input_ipv6_cidrs"></a> [ipv6\_cidrs](#input\_ipv6\_cidrs) | List of IPv6 CIDRs that can access the bastion. Default: ::/0 | `list(string)` | <pre>[<br/>  "::/0"<br/>]</pre> | no |
 | <a name="input_is_lb_private"></a> [is\_lb\_private](#input\_is\_lb\_private) | If TRUE, the load balancer scheme will be "internal" else "internet-facing" | `bool` | `null` | no |
 | <a name="input_kms_enable_key_rotation"></a> [kms\_enable\_key\_rotation](#input\_kms\_enable\_key\_rotation) | Enable key rotation for the KMS key | `bool` | `false` | no |
 | <a name="input_log_auto_clean"></a> [log\_auto\_clean](#input\_log\_auto\_clean) | Enable or disable the lifecycle | `bool` | `false` | no |
@@ -160,10 +161,10 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_bastion_auto_scaling_group_name"></a> [bastion\_auto\_scaling\_group\_name](#output\_bastion\_auto\_scaling\_group\_name) | The name of the Auto Scaling Group for bastion hosts |
 | <a name="output_bastion_elb_id"></a> [bastion\_elb\_id](#output\_bastion\_elb\_id) | The ID of the ELB for bastion hosts |
-| <a name="output_bastion_host_iam_role_id"></a> [bastion\_host\_iam\_role\_id](#output\_bastion\_host\_iam\_role\_id) | The ID of the bastion host IAM role |
+| <a name="output_bastion_host_iam_role_id"></a> [bastion\_host\_iam\_role\_id](#output\_bastion\_host\_iam\_role\_id) | The ID of the bastion host iam role |
 | <a name="output_bastion_host_security_group"></a> [bastion\_host\_security\_group](#output\_bastion\_host\_security\_group) | The ID of the bastion host security group |
 | <a name="output_bucket_arn"></a> [bucket\_arn](#output\_bucket\_arn) | The ARN of the S3 bucket |
 | <a name="output_bucket_kms_key_alias"></a> [bucket\_kms\_key\_alias](#output\_bucket\_kms\_key\_alias) | The name of the KMS key alias for the bucket |
