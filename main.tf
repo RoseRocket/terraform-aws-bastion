@@ -185,6 +185,9 @@ resource "aws_lb_target_group" "bastion_lb_target_group" {
   vpc_id      = var.vpc_id
   target_type = "instance"
 
+  deregistration_delay   = var.deregistration_delay
+  connection_termination = false
+
   health_check {
     port     = "traffic-port"
     protocol = "TCP"
@@ -286,7 +289,7 @@ resource "aws_autoscaling_group" "bastion_auto_scaling_group" {
 
   default_cooldown          = 180
   health_check_grace_period = 180
-  health_check_type         = "EC2"
+  health_check_type         = var.health_check_type
 
   target_group_arns = var.create_elb ? [
     aws_lb_target_group.bastion_lb_target_group[0].arn,
@@ -314,6 +317,12 @@ resource "aws_autoscaling_group" "bastion_auto_scaling_group" {
 
   instance_refresh {
     strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = var.instance_refresh_min_healthy_percentage
+      max_healthy_percentage = var.instance_refresh_max_healthy_percentage
+      instance_warmup        = var.instance_refresh_instance_warmup
+    }
   }
 
   lifecycle {

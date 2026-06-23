@@ -98,6 +98,61 @@ variable "cidrs" {
   ]
 }
 
+variable "deregistration_delay" {
+  type        = number
+  description = "Seconds the NLB keeps a deregistering target in the draining state before it is removed. The ASG will not terminate an old instance during an instance refresh until draining completes, so in-flight SSH/Postgres sessions can finish. Max 3600."
+  default     = 3600
+}
+
+variable "health_check_type" {
+  type        = string
+  description = "ASG health check type. Use 'ELB' so an instance refresh waits for the bastion's SSH port to accept connections (via the NLB target group health check) before draining the previous instance."
+  default     = "ELB"
+
+  validation {
+    condition     = contains(["EC2", "ELB"], var.health_check_type)
+    error_message = "health_check_type must be either 'EC2' or 'ELB'."
+  }
+}
+
+variable "instance_refresh_min_healthy_percentage" {
+  type        = number
+  description = "Minimum percentage of the ASG that must stay healthy during an instance refresh. 100 keeps the existing bastion fully in service until the replacement is healthy."
+  default     = 100
+
+  validation {
+    condition     = var.instance_refresh_min_healthy_percentage >= 0 && var.instance_refresh_min_healthy_percentage <= 100
+    error_message = "instance_refresh_min_healthy_percentage must be between 0 and 100."
+  }
+}
+
+variable "instance_refresh_max_healthy_percentage" {
+  type        = number
+  description = "Maximum percentage of capacity the ASG may reach during an instance refresh. Must be greater than instance_refresh_min_healthy_percentage when that is 100, so a replacement can launch before the old instance is terminated. Range 100-200."
+  default     = 200
+
+  validation {
+    condition     = var.instance_refresh_max_healthy_percentage >= 100 && var.instance_refresh_max_healthy_percentage <= 200
+    error_message = "instance_refresh_max_healthy_percentage must be between 100 and 200."
+  }
+
+  validation {
+    condition     = var.instance_refresh_max_healthy_percentage - var.instance_refresh_min_healthy_percentage <= 100
+    error_message = "instance_refresh_max_healthy_percentage - instance_refresh_min_healthy_percentage must be <= 100."
+  }
+
+  validation {
+    condition     = var.instance_refresh_min_healthy_percentage < 100 || var.instance_refresh_max_healthy_percentage > 100
+    error_message = "When instance_refresh_min_healthy_percentage is 100, instance_refresh_max_healthy_percentage must be > 100 so a replacement can launch before the old instance is terminated."
+  }
+}
+
+variable "instance_refresh_instance_warmup" {
+  type        = number
+  description = "Seconds to wait after a replacement instance reaches a healthy state before counting it toward healthy capacity during an instance refresh. With an ELB health check the SSH port is already confirmed reachable, so this only needs to be a small buffer."
+  default     = 60
+}
+
 variable "create_dns_record" {
   type        = bool
   description = "Choose if you want to create a record name for the bastion (LB). If true, 'hosted_zone_id' and 'bastion_record_name' are mandatory"
@@ -188,7 +243,7 @@ variable "is_lb_private" {
   type        = bool
   nullable    = true
   default     = null
-  description = "If TRUE, the load balancer scheme will be \"internal\" else \"internet-facing\""
+  description = "If TRUE, the load balancer scheme will be 'internal' else 'internet-facing'"
 }
 
 variable "kms_enable_key_rotation" {
