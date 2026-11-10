@@ -168,6 +168,9 @@ resource "aws_lb" "bastion_lb" {
   load_balancer_type = "network"
   tags               = merge(var.tags)
 
+  # One bastion sits behind a load balancer node in every subnet's AZ. With cross-zone off, nodes in AZs without the bastion drop new connections.
+  enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
+
   lifecycle {
     precondition {
       condition     = !var.create_elb || (length(var.elb_subnets) > 0 && var.is_lb_private != null)

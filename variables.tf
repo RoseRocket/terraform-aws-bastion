@@ -104,6 +104,12 @@ variable "deregistration_delay" {
   default     = 3600
 }
 
+variable "enable_cross_zone_load_balancing" {
+  type        = bool
+  description = "Let every NLB node forward to the bastion in any AZ. Without it, clients holding the IP of a node whose AZ has no bastion (such as after an instance refresh moves the bastion) time out."
+  default     = true
+}
+
 variable "health_check_type" {
   type        = string
   description = "ASG health check type. Use 'ELB' so an instance refresh waits for the bastion's SSH port to accept connections (via the NLB target group health check) before draining the previous instance."
