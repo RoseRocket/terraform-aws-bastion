@@ -28,27 +28,23 @@ resource "aws_security_group" "bastion_host_security_group" {
   tags = merge(var.tags)
 }
 
-resource "aws_security_group_rule" "ingress_bastion" {
-  count            = var.bastion_security_group_id == "" && var.create_elb ? 1 : 0
-  description      = "Incoming traffic to bastion"
-  type             = "ingress"
-  from_port        = var.public_ssh_port
-  to_port          = var.public_ssh_port
-  protocol         = "TCP"
-  cidr_blocks      = local.ipv4_cidr_block
-  ipv6_cidr_blocks = local.ipv6_cidr_block
+resource "aws_vpc_security_group_ingress_rule" "ingress_bastion" {
+  for_each    = var.bastion_security_group_id == "" && var.create_elb ? toset(concat(local.ipv4_cidr_block, local.ipv6_cidr_block)) : toset([])
+  description = "Incoming traffic to bastion"
+  from_port   = var.public_ssh_port
+  to_port     = var.public_ssh_port
+  ip_protocol = "tcp"
+  cidr_ipv4   = strcontains(each.value, ":") ? null : each.value
+  cidr_ipv6   = strcontains(each.value, ":") ? each.value : null
 
   security_group_id = local.security_group
 }
 
-resource "aws_security_group_rule" "egress_bastion" {
+resource "aws_vpc_security_group_egress_rule" "egress_bastion" {
   count       = var.bastion_security_group_id == "" ? 1 : 0
   description = "Outgoing traffic from bastion to instances"
-  type        = "egress"
-  from_port   = "0"
-  to_port     = "65535"
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
+  ip_protocol = "-1"
+  cidr_ipv4   = "0.0.0.0/0"
 
   security_group_id = local.security_group
 }
@@ -61,14 +57,13 @@ resource "aws_security_group" "private_instances_security_group" {
   tags = merge(var.tags)
 }
 
-resource "aws_security_group_rule" "ingress_instances" {
+resource "aws_vpc_security_group_ingress_rule" "ingress_instances" {
   description = "Incoming traffic from bastion"
-  type        = "ingress"
   from_port   = var.private_ssh_port
   to_port     = var.private_ssh_port
-  protocol    = "TCP"
+  ip_protocol = "tcp"
 
-  source_security_group_id = local.security_group
+  referenced_security_group_id = local.security_group
 
   security_group_id = aws_security_group.private_instances_security_group.id
 }
